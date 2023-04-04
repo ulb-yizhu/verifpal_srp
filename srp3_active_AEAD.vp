@@ -1,0 +1,71 @@
+attacker[active]
+// register
+principal Alice[
+knows private n // pre-shared secret key because not a requirement of SRP
+generates salt, pass
+x = HASH(salt,pass)
+gx = G^x
+enc_v = ENC(n,gx)
+]
+
+Alice→ Bob: salt , enc_v
+principal Bob[
+knows private n
+v = DEC(n,enc_v)
+]
+
+// establish common session key K
+principal Alice[
+generates a
+ga = G^a
+]
+
+Alice-> Bob: ga
+principal Bob[
+generates b , u
+gb = G^b
+gvb = ENC(v,gb) // v + g^b
+// compute the key
+gvbu = gvb^u
+gab=ga^b
+K_B = HASH(gab,gvbu)
+]
+
+Bob-> Alice: gvb, u
+principal Alice[
+gbuv = gvb ^ u
+gb_dec = DEC(gx,gvb)
+gba = gb_dec ^ a
+K_A = HASH(gba,gbuv)
+]
+
+// verify session key
+principal Alice[
+// m1=HASH(ga,gvb,K_A)
+m1= AEAD_ENC(ga,K_A,gvb)
+]
+
+Alice-> Bob: m1
+principal Bob[
+// _1 = ASSERT(m1,HASH(ga,gvb,K_B))
+_1 = AEAD_DEC(ga,m1,gvb)?   //assert
+// m2 = HASH(ga,m1,K_B)
+
+m2 = AEAD_ENC(ga,m1,gvb)
+]
+
+Bob-> Alice: m2
+principal Alice[
+_2 = AEAD_DEC(ga,m2,gvb)? //assert
+// _2=ASSERT(m2,HASH(ga,m1,K_A))
+]
+
+
+queries[
+// 32 Gb out of memory ...
+confidentiality? x
+confidentiality? v
+// equivalence? K_A,K_B
+authentication? Alice-> Bob: m1
+authentication? Bob-> Alice: m2
+]

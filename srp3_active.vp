@@ -59,9 +59,10 @@ _2=ASSERT(m2,alice_test)?
 
 
 queries[
-confidentiality? x
-confidentiality? v
-equivalence? K_A,K_B
+// 32 Gb out of memory ...
+// confidentiality? x
+// confidentiality? v
+// equivalence? K_A,K_B
 authentication? Alice-> Bob: m1
 authentication? Bob-> Alice: m2
 ]

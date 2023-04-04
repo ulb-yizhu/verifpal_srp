@@ -1,0 +1,54 @@
+attacker[active]
+// establish common session key K
+principal Malserver[
+knows private salt
+knows private v
+generates a
+leaks salt, v
+ga = G^a
+]
+
+Malserver-> Bob: ga
+principal Bob[
+knows private v
+knows private salt
+generates b , u
+gb = G^b
+gvb = ENC(v,gb) // v + g^b
+// compute the key
+gvbu = gvb^u
+gab=ga^b
+K_B = HASH(gab,gvbu)
+]
+
+Bob-> Malserver: gvb, u
+principal Malserver[
+gbuv = gvb ^ u
+gb_dec = DEC(v,gvb)
+gba = gb_dec ^ a
+K_A = HASH(gba,gbuv)
+]
+
+// verify session key
+principal Malserver[
+m1=HASH(ga,gvb,K_A)
+]
+
+Malserver-> Bob: m1
+principal Bob[
+bob_test = HASH(ga,gvb,K_B)
+_1 = ASSERT(m1,bob_test)?
+m2 = HASH(ga,m1,K_B)
+]
+
+Bob-> Malserver: m2
+principal Malserver[
+Malserver_test=HASH(ga,m1,K_A)
+_2=ASSERT(m2,Malserver_test)?
+]
+
+
+queries[
+authentication? Malserver-> Bob: m1
+// authentication? Bob-> Malserver: m2
+]

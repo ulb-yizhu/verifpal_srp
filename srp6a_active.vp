@@ -34,12 +34,13 @@ principal Bob[
     gvb = ENC(kv,gb) // kv + g^b
 
     c_Bob = HASH(ga,gvb)  // u = H(A,B)
-
+    H_salt = HASH(salt)
 ]
 // send (salt), B
-Bob-> Alice: gvb
+Bob-> Alice: gvb,H_salt
 // compute session key S_user
 principal Alice[
+    _4 = ASSERT(HASH(salt),H_salt)?
     c_Alice = HASH(ga,gvb)  // u = H(A,B)
     k_Alice = G ^ c
     x = HASH(salt,pwd)
@@ -81,17 +82,12 @@ principal Alice[
 
 
 queries[
-    // equivalence? S_server_hash, S_user_hash
-    authentication? Alice-> Bob: m1[
-        precondition[Bob->Alice: m2]]
-    // confidentiality? pwd
-    // confidentiality? S_server_hash
-    // confidentiality? S_user_hash
-    // confidentiality? v
-    // confidentiality? new_gx
-    // confidentiality? gx
-    // authentication? Alice-> Bob: m1
-    // authentication? Bob-> Alice: m2
+// confidentiality? x
+// confidentiality? v
+// equivalence? S_server_hash,S_user_hash
+// memory BOOM
+authentication? Alice-> Bob: m1
+authentication? Bob-> Alice: m2
 ]
 
 // queries[

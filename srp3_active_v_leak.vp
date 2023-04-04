@@ -12,11 +12,13 @@ Alice→ Bob: salt , enc_v
 principal Bob[
 knows private n
 v = DEC(n,enc_v)
-leaks v
 ]
+
+phase[1]
 
 // establish common session key K
 principal Alice[
+leaks gx // leak v
 generates a
 ga = G^a
 ]

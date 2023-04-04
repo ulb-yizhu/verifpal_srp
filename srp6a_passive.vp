@@ -68,30 +68,24 @@ principal Alice[
 Alice-> Bob: m1
 principal Bob[
     bob_test = HASH(ga,gvb,S_server_hash)
-    _ = ASSERT(m1,bob_test)?
+    _ = ASSERT(m1,bob_test)
     m2 = HASH(ga,m1,S_server_hash)
 ]
 
 Bob-> Alice: m2
 principal Alice[
-    alice_test=HASH(ga,m1,S_user_hash)
-    _ = ASSERT(m2,alice_test)?
+    alice_test = HASH(ga,m1,S_user_hash)
+    _ = ASSERT(m2,alice_test)
+    generates m
 ]
 
 
 queries[
-    equivalence? S_server_hash, S_user_hash
-    confidentiality? pwd
-    confidentiality? S_server_hash
-    confidentiality? S_user_hash
-    confidentiality? v
-    confidentiality? new_gx
-    confidentiality? gx
-    authentication? Alice-> Bob: m1
-    authentication? Bob-> Alice: m2
-    
-    authentication? Alice-> Bob: m1[
-        precondition[Bob->Alice: m2]]
+confidentiality? x
+confidentiality? v
+equivalence? S_server_hash,S_user_hash
+authentication? Alice-> Bob: m1
+authentication? Bob-> Alice: m2
 ]
 
 // queries[

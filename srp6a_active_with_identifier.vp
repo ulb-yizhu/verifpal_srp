@@ -46,9 +46,7 @@ Bob-> Alice: gvb
 principal Alice[
     c_Alice = HASH(ga,gvb)  // u = H(A,B)
     k_Alice = G ^ c
-    x = HASH(salt,pwd)
-    new_gx = G ^ x
-    kv_Alice = HASH(K_Alice,new_gx)
+    kv_Alice = HASH(K_Alice,gx)
     gb_get = DEC(kv_Alice,gvb)
     gab =  gb_get ^ a
     gcxb = gvb ^ c_Alice
@@ -85,27 +83,15 @@ principal Alice[
 
 
 queries[
-// confidentiality? x
-// confidentiality? v
-// equivalence? S_server_hash,S_user_hash
-authentication? Alice-> Bob: m1
-authentication? Bob-> Alice: m2
+    equivalence? S_server_hash, S_user_hash
+    confidentiality? pwd
+    confidentiality? S_server_hash
+    confidentiality? S_user_hash
+    confidentiality? v
+    confidentiality? gx
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
+    freshness? ga
+    freshness? gb
 ]
-
-// queries[
-//     // leak of verifier ?
-//     confidentiality? gx
-//     confidentiality? new_gx
-//     confidentiality? v
-//     // leak of password ?
-//     confidentiality? pwd
-//     // leak of session key ?
-//     confidentiality? S_server_hash
-//     confidentiality? S_user_hash
-//     // is session key the same ?
-//     equivalence? S_server_hash, S_user_hash
-//     // 1 hour ?? ....
-//     // not into file ? ...
-//     // authentication? Alice-> Bob: m1
-//     // authentication? Bob-> Alice: m2
-// ]

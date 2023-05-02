@@ -1,0 +1,78 @@
+// SRP6a: http://srp.stanford.edu/design.html
+attacker[passive]
+
+// establish common session key K
+principal Alice[
+    knows private salt
+    knows private v
+    knows private c
+    generates a
+    ga = G^a
+]
+// send (identifier), A
+Alice-> Bob: ga
+// compute 
+principal Bob[
+    knows private c
+    knows private v
+    knows private salt
+    generates b
+    gb = G^b
+    // gc_Bob = G^c
+    gvb = ENC(HASH(G^c,v),gb) // B = kv + g^b
+
+    c_Bob = HASH(ga,gvb)  // u = H(A,B)
+    H_salt = HASH(salt)
+    leaks salt, v, b, c  // IT LEAKS EVERYTHING
+]
+// send (salt), B
+Bob-> Alice: gvb,H_salt
+// compute session key S_user
+principal Alice[
+    _ = ASSERT(HASH(salt),H_salt)?
+    c_Alice = HASH(ga,gvb)  // u = H(A,B)    
+    gb_get = DEC(HASH(G^ c,v),gvb)  // G ^ b
+    // gab =  gb_get ^ a
+    // gcxb = gvb ^ c_Alice
+    s_user = HASH(gb_get ^ a,gvb ^ c_Alice) // S = H(g^ab,g^uxb) similar to S = (B - kg^x) ^ (a + ux)
+    S_user_hash = HASH(s_user)  // K = H(S)
+]
+
+// compute session key S_server
+principal Bob[
+    // gab_prime = ga ^ b
+    // gcxb_prime = gvb ^ c_Bob
+    s_server = HASH(ga ^ b,gvb ^ c_Bob)  // S = H(g^ab,g^uxb) similar to S = (Av^u) ^ b
+    S_server_hash = HASH(s_server)  // K = H(S)
+]
+
+// verify session key
+principal Alice[
+    m1=HASH(ga,gvb,S_user_hash)
+]
+
+Alice-> Bob: m1
+principal Bob[
+    bob_test = HASH(ga,gvb,S_server_hash)
+    _ = ASSERT(m1,bob_test)?
+    m2 = HASH(ga,m1,S_server_hash)
+]
+
+Bob-> Alice: m2
+principal Alice[
+    alice_test = HASH(ga,m1,S_user_hash)
+    _ = ASSERT(m2,alice_test)?
+]
+
+
+queries[
+    equivalence? S_server_hash, S_user_hash
+    confidentiality? S_server_hash
+    confidentiality? S_user_hash
+    confidentiality? v
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
+    freshness? ga
+    freshness? gb
+]

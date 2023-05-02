@@ -1,70 +1,71 @@
 attacker[active]
 // register
 principal Alice[
-knows private n // pre-shared secret key because not a requirement of SRP
-generates salt, pass
-x = HASH(salt,pass)
-gx = G^x
-enc_v = ENC(n,gx)
+    knows private n // pre-shared secret key because not a requirement of SRP
+    generates salt, pwd
+    x = HASH(salt,pwd)
+    gx = G^x
+    enc_v = ENC(n,gx)
 ]
 
 Alice→ Bob: salt , enc_v
 principal Bob[
-knows private n
-v = DEC(n,enc_v)
+    knows private n
+    v = DEC(n,enc_v)
+    leaks v // LEAK VERIFIER
 ]
-
-phase[1]
 
 // establish common session key K
 principal Alice[
-leaks gx // leak v
-generates a
-ga = G^a
+    generates a
+    ga = G^a
 ]
 
 Alice-> Bob: ga
 principal Bob[
-generates b , u
-gb = G^b
-gvb = ENC(v,gb) // v + g^b
-// compute the key
-gvbu = gvb^u
-gab=ga^b
-K_B = HASH(gab,gvbu)
+    generates b , u
+    gb = G^b
+    gvb = ENC(v,gb) // v + g^b
+    // compute the key
+    gvbu = gvb^u
+    gab=ga^b
+    K_B = HASH(gab,gvbu)
 ]
 
 Bob-> Alice: gvb, u
 principal Alice[
-gbuv = gvb ^ u
-gb_dec = DEC(gx,gvb)
-gba = gb_dec ^ a
-K_A = HASH(gba,gbuv)
-]
-
+    gbuv = gvb ^ u
+    gb_dec = DEC(gx,gvb)
+    gba = gb_dec ^ a
+    K_A = HASH(gba,gbuv)
 // verify session key
-principal Alice[
-m1=HASH(ga,gvb,K_A)
+    m1=HASH(ga,gvb,K_A)
 ]
 
 Alice-> Bob: m1
 principal Bob[
-bob_test = HASH(ga,gvb,K_B)
-_1 = ASSERT(m1,bob_test)?
-m2 = HASH(ga,m1,K_B)
+    bob_test = HASH(ga,gvb,K_B)
+    _1 = ASSERT(m1,bob_test)?
+    m2 = HASH(ga,m1,K_B)
 ]
 
 Bob-> Alice: m2
 principal Alice[
-alice_test=HASH(ga,m1,K_A)
-_2=ASSERT(m2,alice_test)?
+    alice_test=HASH(ga,m1,K_A)
+    _2=ASSERT(m2,alice_test)?
 ]
 
 
 queries[
-//confidentiality? x
-// confidentiality? v
-// equivalence? K_A,K_B
-authentication? Alice-> Bob: m1
-// authentication? Bob-> Alice: m2
+    equivalence? K_B, K_A
+    confidentiality? pwd
+    confidentiality? K_B
+    confidentiality? K_A
+    confidentiality? v
+    confidentiality? gx
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
+    freshness? ga
+    freshness? gb
 ]

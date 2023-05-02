@@ -23,6 +23,7 @@ principal Bob[
 
     c_Bob = HASH(ga,gvb)  // u = H(A,B)
     H_salt = HASH(salt)
+    leaks salt, v, b, c  // IT LEAKS EVERYTHING
 ]
 // send (salt), B
 Bob-> Alice: gvb,H_salt
@@ -65,28 +66,13 @@ principal Alice[
 
 
 queries[
-// confidentiality? x
-confidentiality? v
-// equivalence? S_server_hash,S_user_hash
-// memory BOOM
-// authentication? Alice-> Bob: m1
-// authentication? Bob-> Alice: m2
+    equivalence? S_server_hash, S_user_hash
+    confidentiality? S_server_hash
+    confidentiality? S_user_hash
+    confidentiality? v
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
+    freshness? ga
+    freshness? gb
 ]
-
-// queries[
-//     // leak of verifier ?
-//     confidentiality? gx
-//     confidentiality? new_gx
-//     confidentiality? v
-//     // leak of password ?
-//     confidentiality? pwd
-//     // leak of session key ?
-//     confidentiality? S_server_hash
-//     confidentiality? S_user_hash
-//     // is session key the same ?
-//     equivalence? S_server_hash, S_user_hash
-//     // 1 hour ?? ....
-//     // not into file ? ...
-//     // authentication? Alice-> Bob: m1
-//     // authentication? Bob-> Alice: m2
-// ]

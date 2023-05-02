@@ -5,7 +5,7 @@ principal Alice[
     knows private n // pre-shared secret key because not a requirement of SRP
     knows private c
     knows private pwd
-    generates salt
+    knows private salt
     x_register = HASH(salt,pwd)
     gx = G ^ x_register
     enc_v = ENC(n,gx)
@@ -32,20 +32,16 @@ principal Bob[
     k_Bob = G^c
     kv= HASH(K_Bob,v)
     gvb = ENC(kv,gb) // kv + g^b
-
     c_Bob = HASH(ga,gvb)  // u = H(A,B)
-    H_salt = HASH(salt)
+
 ]
 // send (salt), B
-Bob-> Alice: gvb,H_salt
+Bob-> Alice: gvb
 // compute session key S_user
 principal Alice[
-    _4 = ASSERT(HASH(salt),H_salt)?
     c_Alice = HASH(ga,gvb)  // u = H(A,B)
     k_Alice = G ^ c
-    x = HASH(salt,pwd)
-    new_gx = G ^ x
-    kv_Alice = HASH(K_Alice,new_gx)
+    kv_Alice = HASH(K_Alice,gx)
     gb_get = DEC(kv_Alice,gvb)
     gab =  gb_get ^ a
     gcxb = gvb ^ c_Alice
@@ -69,41 +65,27 @@ principal Alice[
 Alice-> Bob: m1
 principal Bob[
     bob_test = HASH(ga,gvb,S_server_hash)
-    _ = ASSERT(m1,bob_test)
+    _ = ASSERT(m1,bob_test)?
     m2 = HASH(ga,m1,S_server_hash)
 ]
 
 Bob-> Alice: m2
 principal Alice[
-    alice_test = HASH(ga,m1,S_user_hash)
-    _ = ASSERT(m2,alice_test)
-    generates m
+    alice_test=HASH(ga,m1,S_user_hash)
+    _ = ASSERT(m2,alice_test)?
 ]
 
 
 queries[
-// confidentiality? x
-// confidentiality? v
-// equivalence? S_server_hash,S_user_hash
-// memory BOOM
-authentication? Alice-> Bob: m1
-authentication? Bob-> Alice: m2
+    equivalence? S_server_hash, S_user_hash
+    confidentiality? pwd
+    confidentiality? S_server_hash
+    confidentiality? S_user_hash
+    confidentiality? v
+    confidentiality? gx
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
+    freshness? ga
+    freshness? gb
 ]
-
-// queries[
-//     // leak of verifier ?
-//     confidentiality? gx
-//     confidentiality? new_gx
-//     confidentiality? v
-//     // leak of password ?
-//     confidentiality? pwd
-//     // leak of session key ?
-//     confidentiality? S_server_hash
-//     confidentiality? S_user_hash
-//     // is session key the same ?
-//     equivalence? S_server_hash, S_user_hash
-//     // 1 hour ?? ....
-//     // not into file ? ...
-//     // authentication? Alice-> Bob: m1
-//     // authentication? Bob-> Alice: m2
-// ]

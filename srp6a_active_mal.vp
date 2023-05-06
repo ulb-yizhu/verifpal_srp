@@ -1,0 +1,76 @@
+// SRP6a: http://srp.stanford.edu/design.html
+attacker[active]
+
+// establish common session key K
+principal Malserver[
+    knows private salt
+    knows private v
+    knows private Ident
+    generates a
+    ga = G^a
+]
+// send (identifier), A
+Malserver-> Server: ga
+// compute 
+principal Server[
+    knows private Ident
+    knows private v
+    knows private salt
+    generates b
+    gb = G^b
+    // gc_Bob = G^Ident
+    gvb = ENC(HASH(G^Ident,v),gb) // B = kv + g^b
+
+    c_Bob = HASH(ga,gvb)  // u = H(A,B)
+    leaks salt, v, b, Ident  // IT LEAKS EVERYTHING
+]
+// send (salt), B
+Server-> Malserver: gvb
+// compute session key S_user
+principal Malserver[
+    c_Alice = HASH(ga,gvb)  // u = H(A,B)    
+    gb_get = DEC(HASH(G^ Ident,v),gvb)  // G ^ b
+    gab =  gb_get ^ a
+    gcxb = gvb ^ c_Alice
+    s_user = HASH(gab,gcxb) // S = H(g^ab,g^uxb) similar to S = (B - kg^x) ^ (a + ux)
+    S_user_hash = HASH(s_user)  // K = H(S)
+]
+
+// compute session key S_server
+principal Server[
+    gab_prime = ga ^ b
+    gcxb_prime = gvb ^ c_Bob
+    s_server = HASH(gab_prime,gcxb_prime)  // S = H(g^ab,g^uxb) similar to S = (Av^u) ^ b
+    S_server_hash = HASH(s_server)  // K = H(S)
+]
+
+// verify session key
+principal Malserver[
+    m1=HASH(ga,gvb,S_user_hash)
+]
+
+Malserver-> Server: m1
+principal Server[
+    bob_test = HASH(ga,gvb,S_server_hash)
+    _ = ASSERT(m1,bob_test)?
+    m2 = HASH(ga,m1,S_server_hash)
+]
+
+Server-> Malserver: m2
+principal Malserver[
+    alice_test = HASH(ga,m1,S_user_hash)
+    _ = ASSERT(m2,alice_test)?
+]
+
+
+queries[
+    equivalence? S_server_hash, S_user_hash
+    confidentiality? S_server_hash
+    confidentiality? S_user_hash
+    confidentiality? v
+    authentication? Malserver-> Server: m1
+    authentication? Malserver-> Server: m1[
+    precondition[Server->Malserver: m2]]
+    freshness? ga
+    freshness? gb
+]

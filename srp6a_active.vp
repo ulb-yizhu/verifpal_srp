@@ -3,7 +3,7 @@ attacker[active]
 // register
 principal Alice[
     knows private n // pre-shared secret key because not a requirement of SRP
-    knows private c
+    knows private Ident
     knows private pwd
     knows private salt
     x_register = HASH(salt,pwd)
@@ -11,10 +11,9 @@ principal Alice[
     enc_v = ENC(n,gx)
 ]
 // store salt, verifier
-Alice→ Bob: salt , enc_v
+Alice→ Bob: salt , enc_v, Ident
 principal Bob[
     knows private n
-    knows private c
     v = DEC(n,enc_v)
 ]
 
@@ -29,7 +28,7 @@ Alice-> Bob: ga
 principal Bob[
     generates b
     gb = G^b
-    k_Bob = G^c
+    k_Bob = G^Ident
     kv= HASH(K_Bob,v)
     gvb = ENC(kv,gb) // kv + g^b
     c_Bob = HASH(ga,gvb)  // u = H(A,B)
@@ -40,7 +39,7 @@ Bob-> Alice: gvb
 // compute session key S_user
 principal Alice[
     c_Alice = HASH(ga,gvb)  // u = H(A,B)
-    k_Alice = G ^ c
+    k_Alice = G ^ Ident
     kv_Alice = HASH(K_Alice,gx)
     gb_get = DEC(kv_Alice,gvb)
     gab =  gb_get ^ a

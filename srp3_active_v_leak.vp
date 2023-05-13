@@ -57,15 +57,15 @@ principal Alice[
 
 
 queries[
-    // equivalence? K_B, K_A
-    // confidentiality? pwd
-    // confidentiality? K_B
-    // confidentiality? K_A
-    // confidentiality? v
-    // confidentiality? gx
-    // authentication? Alice-> Bob: m1
-    // authentication? Alice-> Bob: m1[
-    // precondition[Bob->Alice: m2]]
+    equivalence? K_B, K_A
+    confidentiality? pwd
+    confidentiality? K_B
+    confidentiality? K_A
+    confidentiality? v
+    confidentiality? gx
+    authentication? Alice-> Bob: m1
+    authentication? Alice-> Bob: m1[
+    precondition[Bob->Alice: m2]]
     freshness? ga
     freshness? gb
 ]
